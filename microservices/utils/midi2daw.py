@@ -62,13 +62,13 @@ def __demo():
 
     print("Running on: " + str(midolib.get_input_names()[0]))
 
-    start_note(68, 50)
+    start_note(68, 100, 0)
     time.sleep(0.5)
 
     while True:
-        stop_note(68)
+        stop_note(68, 0)
         time.sleep(0.5)
-        start_note(68, 50)
+        start_note(68, 100, 0)
         time.sleep(0.5)
 
 
