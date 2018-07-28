@@ -33,7 +33,7 @@ def start_note(note, velocity):
     __note_control('note_on', note, velocity)
 
 
-def stopNote(note):
+def stop_note(note):
     """Stop a playing note."""
 
     __note_control('note_off', note, 0)
@@ -58,13 +58,18 @@ def __demo():
     """Send a beeping middle C note repetitively to the MIDI port."""
 
     msg = Message('note_on', note=60)
-    outport = midolib.open_output(midolib.get_output_names()[0])
+    set_output_port()
 
     print(midolib.get_input_names()[0])
 
+    start_note(68, 50)
+    time.sleep(0.5)
+
     while True:
+        stop_note(68)
         time.sleep(0.5)
-        outport.send(msg)
+        start_note(68, 50)
+        time.sleep(0.5)
 
 
 if __name__ == "__main__":
