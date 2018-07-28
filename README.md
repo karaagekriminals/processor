@@ -20,4 +20,3 @@ That's it; after this, you can run the server!
 ## Information
 
 - The midi2daw module was tested on Windows 10 with the LoopBe1 emulator and macOS High Sierra.
--

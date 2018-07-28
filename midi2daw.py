@@ -65,3 +65,7 @@ def __demo():
     while True:
         time.sleep(0.5)
         outport.send(msg)
+
+
+if __name__ == "__main__":
+    __demo()
