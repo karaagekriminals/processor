@@ -7,12 +7,16 @@ IoT device processor, MIDI output generator, and customisation for the Low Heat 
 To "build" you must have:
 
 - Python 3.6
-- msgpack
-- paho-mqtt
+- Pipenv
 
-Install the pip dependencies with:
+Install the Python dependencies with:
 
 ```
-pip install msgpack
-pip install paho-mqtt
+pipenv install
 ```
+
+That's it; after this, you can run the server!
+
+## Information
+
+- The midi2daw module was tested on Windows 10 with the LoopBe1 emulator and macOS High Sierra.

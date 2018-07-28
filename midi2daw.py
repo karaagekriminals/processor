@@ -1,45 +1,71 @@
-from mido import Message 
+"""Play MIDI signals to a virtual MIDI instrument."""
+
+from mido import Message
 import mido as midolib
-#Tested on windows with LoopBe1 emulator
-#Mido used for midi, this library requires:
-# https://mido.readthedocs.io/en/latest/installing.html
+
 import time
 
-## ************* Instructions ********
-# 1.) set the output port first using the setOutputPort method
-# 2.) use startNote(pitch) to begin playing a note and then stopNote(pitch) to stop it playing
+# We need an output port to play anything to and it needs to be global.
 
-
-#For middle C use note = 60
 outport = None
-def setOutputPort(*args):
-    #Optional argument of MidiOutput Port.
-    #If this isn't used then it picks the first port 
-    #from a list of all available.
+
+
+# Required set-up for MIDI output.
+
+
+def set_output_port(*args):
+    """Set the output port. Set to default port if not specified."""
+
     global outport
+
     if not args:
         outport = midolib.open_output(midolib.get_output_names()[0])
     else:
         outport = midolib.open_output(args[1])
 
-#Must setOutputPort before Playing Note
-def NoteCtrl(msgtype,note,time):
-    msg = Message(msgtype, note=note,velocity=vel) 
+
+# Public methods.
+
+
+def start_note(note, velocity):
+    """Play a note and pitch."""
+
+    __note_control('note_on', note, velocity)
+
+
+def stopNote(note):
+    """Stop a playing note."""
+
+    __note_control('note_off', note, 0)
+
+
+# Private helper methods.
+
+
+def __note_control(msgtype, note, velocity):
+    if not outport:
+        raise NameError("Output port name 'outport' is not defined. Make " +
+                        "sure you call 'set_output_port()'")
+
+    msg = Message(msgtype, note=note, velocity=velocity)
     outport.send(msg)
 
-#Start note - pass in value (middle C is 60)
-def startNote(note,velocity):
-    NoteCtrl('note_on',note,0)
 
-#Stop note function - pass in value (middle C is 60)
-def stopNote(note):
-    NoteCtrl('note_off',note,0)
+# Demo function definition.
 
-## For demo purposes only, don't call this function
-def MidiDemo():
-    msg = Message('note_on', note=60) 
+
+def __demo():
+    """Send a beeping middle C note repetitively to the MIDI port."""
+
+    msg = Message('note_on', note=60)
     outport = midolib.open_output(midolib.get_output_names()[0])
+
     print(midolib.get_input_names()[0])
+
     while True:
         time.sleep(0.5)
         outport.send(msg)
+
+
+if __name__ == "__main__":
+    __demo()
