@@ -15,6 +15,8 @@ Install the Python dependencies with:
 pipenv install
 ```
 
+You probably want to be able to play a MIDI instrument using this. You can do this by setting up a virtual MIDI port. This is much easier on macOS through `Utilities->Audio Midi Setup->Window->Show MIDI Studio` than using LoopBe1.
+
 That's it; after this, you can run the server!
 
 ## Information
