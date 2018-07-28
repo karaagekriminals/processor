@@ -14,11 +14,17 @@ prev_note = None
 curr_note = None
 curr_velo = None
 
+prev_filter = None
+curr_filter = None
+
 # Constants.
 
 STARTING_NOTE = 48
-NOTE_PROGRESSION = [3, 2, 2, 3, 2]
-OCTAVES = 1
+PENTATONIC_SCALE = [3, 2, 2, 3, 2]
+MAJOR_SCALE = [2, 2, 1, 2, 2, 2, 1]
+MAJOR_TRIAD = [4, 3, 5]
+NOTE_PROGRESSION = MAJOR_TRIAD
+OCTAVES = 3
 NOTES_IN_KEY = [STARTING_NOTE]
 
 # Create the octaves of the scale.
@@ -44,24 +50,30 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     """Callback for PUBLISH message received from server."""
 
+    global curr_note
+    global curr_velo
+    global curr_filter
+
     json_data = json.loads(msg.payload)
 
     # Calculate pitch.
 
-    heading = (math.degrees(json_data["heading"]) + 210) % 180
     pitch = (math.degrees(json_data["pitch"]) + 270) % 180
-    roll = (math.degrees(json_data["roll"]) + 180) % 180
+    roll = (math.degrees(json_data["roll"]) + 330) % 180
 
     # Calculate percentages as wholes.
 
-    heading = 1000 - math.floor(1000 * heading / 180)
-    pitch = math.floor(1000 * pitch / 180)
-    roll = max(750, math.floor(1000 * roll / 180))
+    pitch = round(1000 * pitch / 180)
+    roll = round(1000 * roll / 180)
 
     # Set the current pitch and velocity.
 
     curr_note = determine_note(pitch)
-    curr_velo = determine_velo(roll)
+    curr_velo = 90
+
+    # Send to the second channel the control for the filter.
+
+    curr_filter = round(roll / 10)
 
 
 def initiate_client():
@@ -89,12 +101,6 @@ def determine_note(pitch):
     return NOTES_IN_KEY[index]
 
 
-def determine_velo(roll):
-    """Use message data to determine a velocity."""
-
-    return math.floor(roll / 10)
-
-
 if __name__ == "__main__":
     initiate_client()
     midi2daw.set_output_port()
@@ -118,7 +124,20 @@ if __name__ == "__main__":
 
             midi2daw.start_note(curr_note, curr_velo, 0)
 
-            print(curr_note)
+            # print(curr_note)
 
             prev_note = curr_note
             curr_note = None
+
+        if (curr_filter != prev_filter) and curr_filter:
+            if prev_filter:
+                # TODO: Remove channel hardcoding.
+
+                midi2daw.stop_note(prev_filter, 1)
+
+            midi2daw.start_note(curr_filter, 90, 1)
+
+            print(curr_filter)
+
+            prev_filter = curr_filter
+            curr_filter = None

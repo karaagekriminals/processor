@@ -40,10 +40,14 @@ def stop_note(note, channel):
 
 
 # Private helper methods.
-def change_knob(controller_no,val):
+
+def change_knob(controller_no, val):
     """ Change a control surface knob value """
-    msg = Message('control_change',channel=0,control=controller_no,value = val)
+
+    msg = Message('control_change', channel=0,
+                  control=controller_no, value=val)
     outport.send(msg)
+
 
 def __note_control(msgtype, note, velocity, channel):
     if not outport:
