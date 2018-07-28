@@ -60,7 +60,7 @@ def __demo():
     msg = Message('note_on', note=60)
     set_output_port()
 
-    print(midolib.get_input_names()[0])
+    print("Running on: " + str(midolib.get_input_names()[0]))
 
     start_note(68, 50)
     time.sleep(0.5)
