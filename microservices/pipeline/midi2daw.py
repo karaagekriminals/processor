@@ -27,27 +27,27 @@ def set_output_port(*args):
 # Public methods.
 
 
-def start_note(note, velocity):
+def start_note(note, velocity, channel):
     """Play a note and pitch."""
 
-    __note_control('note_on', note, velocity)
+    __note_control('note_on', note, velocity, channel)
 
 
-def stop_note(note):
+def stop_note(note, channel):
     """Stop a playing note."""
 
-    __note_control('note_off', note, 0)
+    __note_control('note_off', note, 0, channel)
 
 
 # Private helper methods.
 
 
-def __note_control(msgtype, note, velocity):
+def __note_control(msgtype, note, velocity, channel):
     if not outport:
         raise NameError("Output port name 'outport' is not defined. Make " +
                         "sure you call 'set_output_port()'")
 
-    msg = Message(msgtype, note=note, velocity=velocity)
+    msg = Message(msgtype, note=note, velocity=velocity, channel=channel)
     outport.send(msg)
 
 
