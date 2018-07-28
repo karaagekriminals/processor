@@ -17,13 +17,17 @@ curr_velo = None
 prev_filter = None
 curr_filter = None
 
-# Constants.
+# Define scales.
+
+PENTATONIC_MAJOR = [3, 2, 2, 3, 2]
+MAJOR = [2, 2, 1, 2, 2, 2, 1]
+MAJOR_TRIAD = [4, 3, 5]
+MAJOR_SEVENTH = [4, 3, 4, 1]
+
+# Define note ranges.
 
 STARTING_NOTE = 48
-PENTATONIC_SCALE = [3, 2, 2, 3, 2]
-MAJOR_SCALE = [2, 2, 1, 2, 2, 2, 1]
-MAJOR_TRIAD = [4, 3, 5]
-NOTE_PROGRESSION = MAJOR_TRIAD
+NOTE_PROGRESSION = MAJOR_SEVENTH
 OCTAVES = 3
 NOTES_IN_KEY = [STARTING_NOTE]
 
@@ -59,7 +63,7 @@ def on_message(client, userdata, msg):
     # Calculate pitch.
 
     pitch = (math.degrees(json_data["pitch"]) + 270) % 180
-    roll = (math.degrees(json_data["roll"]) + 330) % 180
+    roll = (math.degrees(json_data["roll"]) + 270) % 180
 
     # Calculate percentages as wholes.
 
@@ -133,11 +137,9 @@ if __name__ == "__main__":
             if prev_filter:
                 # TODO: Remove channel hardcoding.
 
-                midi2daw.stop_note(prev_filter, 1)
+                midi2daw.change_knob(0, prev_filter)
 
-            midi2daw.start_note(curr_filter, 90, 1)
-
-            print(curr_filter)
+            midi2daw.change_knob(0, curr_filter)
 
             prev_filter = curr_filter
             curr_filter = None
