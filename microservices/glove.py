@@ -16,6 +16,7 @@ curr_velo = None
 
 prev_filter = None
 curr_filter = None
+button_state = False
 
 # Define scales.
 
@@ -49,7 +50,7 @@ def on_connect(client, userdata, flags, rc):
 
     client.subscribe('euler/98072d27a984')
     # client.subscribe('telemetry/98072d27a984/movement')
-
+    client.subscribe('telemetry/98072d27a984/inputs')
 
 def on_message(client, userdata, msg):
     """Callback for PUBLISH message received from server."""
@@ -57,27 +58,35 @@ def on_message(client, userdata, msg):
     global curr_note
     global curr_velo
     global curr_filter
+    global button_state
 
     json_data = json.loads(msg.payload)
 
-    # Calculate pitch.
+    #Check the type of message- button press or normal
+    if msg.topic == 'telemetry/98072d27a984/input':
+        button_string = json_data['buttons']['normal']
+        if button_string == 'triggered':
+            button_state = True
+    else: # is the euler topic
+            
+        # Calculate pitch.
 
-    pitch = (math.degrees(json_data["pitch"]) + 270) % 180
-    roll = (math.degrees(json_data["roll"]) + 270) % 180
+        pitch = (math.degrees(json_data["pitch"]) + 270) % 180
+        roll = (math.degrees(json_data["roll"]) + 270) % 180
 
-    # Calculate percentages as wholes.
+        # Calculate percentages as wholes.
 
-    pitch = round(1000 * pitch / 180)
-    roll = round(1000 * roll / 180)
+        pitch = round(1000 * pitch / 180)
+        roll = round(1000 * roll / 180)
 
-    # Set the current pitch and velocity.
+        # Set the current pitch and velocity.
 
-    curr_note = determine_note(pitch)
-    curr_velo = 90
+        curr_note = determine_note(pitch)
+        curr_velo = 90
 
-    # Send to the second channel the control for the filter.
+        # Send to the second channel the control for the filter.
 
-    curr_filter = round(roll / 10)
+        curr_filter = round(roll / 10)
 
 
 def initiate_client():
@@ -143,3 +152,7 @@ if __name__ == "__main__":
 
             prev_filter = curr_filter
             curr_filter = None
+
+        if button_state == True:
+            midi2daw.stop_all()
+            button_state = False
