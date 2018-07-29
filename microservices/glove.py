@@ -17,6 +17,9 @@ curr_velo = None
 prev_filter = None
 curr_filter = None
 
+prev_fader = None
+curr_fader = None
+
 # Define scales.
 
 PENTATONIC_MAJOR = [3, 2, 2, 3, 2]
@@ -26,9 +29,9 @@ MAJOR_SEVENTH = [4, 3, 4, 1]
 
 # Define note ranges.
 
-STARTING_NOTE = 48
-NOTE_PROGRESSION = MAJOR_SEVENTH
-OCTAVES = 3
+STARTING_NOTE = 67
+NOTE_PROGRESSION = PENTATONIC_MAJOR
+OCTAVES = 2
 NOTES_IN_KEY = [STARTING_NOTE]
 
 # Create the octaves of the scale.
@@ -47,8 +50,8 @@ def on_connect(client, userdata, flags, rc):
 
     # Subscribe to the topic(s).
 
-    client.subscribe('euler/98072d27a984')
-    # client.subscribe('telemetry/98072d27a984/movement')
+    client.subscribe('euler/c4be8471a302')
+    client.subscribe('euler/98072d3b1a82')
 
 
 def on_message(client, userdata, msg):
@@ -57,27 +60,38 @@ def on_message(client, userdata, msg):
     global curr_note
     global curr_velo
     global curr_filter
+    global curr_fader
 
     json_data = json.loads(msg.payload)
 
-    # Calculate pitch.
+    # Calculate pitch and roll.
 
     pitch = (math.degrees(json_data["pitch"]) + 270) % 180
-    roll = (math.degrees(json_data["roll"]) + 270) % 180
+    roll = (math.degrees(json_data["roll"]) + 380) % 180
 
-    # Calculate percentages as wholes.
+    if "98" in msg.topic:
+        # Calculate percentages as wholes.
 
-    pitch = round(1000 * pitch / 180)
-    roll = round(1000 * roll / 180)
+        pitch = round(1000 * pitch / 180)
+        roll = round(1000 * roll / 180)
 
-    # Set the current pitch and velocity.
+        # Set the current faders.
 
-    curr_note = determine_note(pitch)
-    curr_velo = 90
+        curr_fader = round(pitch / 10)
+    else:
+        # Calculate percentages as wholes.
 
-    # Send to the second channel the control for the filter.
+        pitch = round(1000 * pitch / 180)
+        roll = round(1000 * roll / 180)
 
-    curr_filter = round(roll / 10)
+        # Set the current pitch and velocity.
+
+        curr_note = determine_note(pitch)
+        curr_velo = 90
+
+        # Send to the second channel the control for the filter.
+
+        curr_filter = round(roll / 10)
 
 
 def initiate_client():
@@ -143,3 +157,14 @@ if __name__ == "__main__":
 
             prev_filter = curr_filter
             curr_filter = None
+
+        if (curr_fader != prev_fader) and curr_fader:
+            if prev_fader:
+                midi2daw.change_knob(2, prev_fader)
+
+            midi2daw.change_knob(2, curr_fader)
+
+            print(curr_fader)
+
+            prev_fader = curr_fader
+            curr_fader = None
