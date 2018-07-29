@@ -39,7 +39,11 @@ def stop_note(note, channel):
     __note_control('note_off', note, 0, channel)
 
 
+def stop_all():
+    outport.panic()
+
 # Private helper methods.
+
 
 def change_knob(controller_no, val):
     """ Change a control surface knob value """

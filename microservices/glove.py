@@ -16,6 +16,7 @@ curr_velo = None
 
 prev_filter = None
 curr_filter = None
+button_state = False
 
 prev_fader = None
 curr_fader = None
@@ -52,6 +53,7 @@ def on_connect(client, userdata, flags, rc):
 
     client.subscribe('euler/c4be8471a302')
     client.subscribe('euler/98072d3b1a82')
+    client.subscribe('telemetry/98072d3b1a82/inputs')
 
 
 def on_message(client, userdata, msg):
@@ -61,28 +63,47 @@ def on_message(client, userdata, msg):
     global curr_velo
     global curr_filter
     global curr_fader
+    global button_state
 
     json_data = json.loads(msg.payload)
 
-    # Calculate pitch and roll.
+    if "key" in msg.topic:
+        print(json_data)
+    elif "input" in msg.topic:
+        # Check the type of message- button press or normal
 
-    pitch = (math.degrees(json_data["pitch"]) + 270) % 180
-    roll = (math.degrees(json_data["roll"]) + 380) % 180
+        button_string = json_data['buttons']['normal']
 
-    if "98" in msg.topic:
+        if button_string == 'triggered':
+            button_state = True
+            midi2daw.stop_all()
+        elif button_string == "idle":
+            button_state = False
+    elif "euler/98072d3b1a82" in msg.topic:
+        # Calculate pitch and roll.
+
+        pitch = (math.degrees(json_data["pitch"]) + 270) % 180
+        roll = (math.degrees(json_data["roll"]) + 380) % 180
+
         # Calculate percentages as wholes.
 
-        pitch = round(1000 * pitch / 180)
-        roll = round(1000 * roll / 180)
+        pitch = round(10000 * pitch / 180)
+        roll = round(10000 * roll / 180)
 
         # Set the current faders.
 
-        curr_fader = round(pitch / 10)
+        curr_fader = int(pitch / 100)
+
     else:
+        # Calculate pitch and roll.
+
+        pitch = (math.degrees(json_data["pitch"]) + 270) % 180
+        roll = (math.degrees(json_data["roll"]) + 330) % 180
+
         # Calculate percentages as wholes.
 
         pitch = round(1000 * pitch / 180)
-        roll = round(1000 * roll / 180)
+        roll = 1000 - round(1000 * roll / 180)
 
         # Set the current pitch and velocity.
 
@@ -92,6 +113,11 @@ def on_message(client, userdata, msg):
         # Send to the second channel the control for the filter.
 
         curr_filter = round(roll / 10)
+
+    # Overwrite fader if there is a button state.
+
+    if button_state:
+        curr_fader = 0
 
 
 def initiate_client():
@@ -132,9 +158,9 @@ if __name__ == "__main__":
         one using the sensor data.
         """
 
-        sleep(0.005)
+        sleep(0.0025)
 
-        if (curr_note != prev_note) and curr_note:
+        if (curr_note != prev_note) and curr_note and not button_state:
             if prev_note:
                 # TODO: Remove channel hardcoding.
 
@@ -163,8 +189,6 @@ if __name__ == "__main__":
                 midi2daw.change_knob(2, prev_fader)
 
             midi2daw.change_knob(2, curr_fader)
-
-            print(curr_fader)
 
             prev_fader = curr_fader
             curr_fader = None
